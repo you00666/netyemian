@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简智航 - 个人万能导航站</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icon CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Glassmorphism custom effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .dark .glass-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 glass shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <span class="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 bg-clip-text text-transparent">
+                    极简智航
+                </span>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors" title="切换深色/浅色模式">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:block text-amber-400"></i>
+                </button>
+
+                <!-- Admin Center Toggle Button -->
+                <button onclick="openAdminModal()" class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 active:scale-95">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="hidden sm:inline">后台管理</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Search Engine Box -->
+        <section class="max-w-3xl mx-auto w-full pt-4 pb-2">
+            <div class="glass p-3 sm:p-4 rounded-2xl shadow-xl space-y-3">
+                <!-- Engine Tabs -->
+                <div class="flex items-center justify-center space-x-2 sm:space-x-4 text-xs sm:text-sm font-medium border-b border-slate-200/50 dark:border-slate-700/50 pb-2.5 overflow-x-auto" id="searchEngineTabs">
+                    <!-- Dynamic Search Tabs -->
+                </div>
+
+                <!-- Input Box -->
+                <form id="searchForm" onsubmit="handleSearch(event)" class="relative flex items-center">
+                    <input type="text" id="searchInput" placeholder="搜索网络或输入网址..." class="w-full pl-12 pr-28 py-3.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm sm:text-base transition-all">
+                    <div class="absolute left-4 text-slate-400 pointer-events-none text-lg">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <button type="submit" class="absolute right-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium text-sm hover:opacity-90 transition-opacity">
+                        搜索
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Quick Jump Category Bar -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="categoryNav">
+            <!-- Dynamic Category Buttons -->
+        </div>
+
+        <!-- Site List Display Area -->
+        <div class="space-y-10" id="siteContainer">
+            <!-- Dynamic Category and Site Cards -->
+        </div>
+
+    </main>
+
+    <!-- Password Auth Modal -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-blue-500"></i> 管理员身份验证
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">初始默认密码：<code class="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400">admin123</code></p>
+            <div>
+                <input type="password" id="authPassword" placeholder="请输入密码" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div id="authError" class="text-red-500 text-xs hidden">密码错误，请重试</div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeAuthModal()" class="px-4 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">取消</button>
+                <button onclick="verifyPassword()" class="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium">验证登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass max-w-4xl w-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                        <i class="fa-solid fa-sliders text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">控制后台与设置</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">自定义分类、网站卡片及配置导入导出</p>
+                    </div>
+                </div>
+                <button onclick="closeAdminModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/30 px-6 text-sm font-medium">
+                <button onclick="switchAdminTab('sites')" id="tabBtn-sites" class="py-3 px-4 border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 font-semibold">网址与分类管理</button>
+                <button onclick="switchAdminTab('import')" id="tabBtn-import" class="py-3 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">书签导入 & 备份</button>
+                <button onclick="switchAdminTab('security')" id="tabBtn-security" class="py-3 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">安全设置</button>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="p-6 overflow-y-auto flex-grow space-y-6">
+
+                <!-- Tab 1: Sites & Categories Management -->
+                <div id="tabContent-sites" class="space-y-6">
+                    <!-- Add Category Form -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
+                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-folder-plus text-blue-500"></i> 添加新分类
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input type="text" id="newCatName" placeholder="分类名称 (例: AI 工具)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">
+                            <input type="text" id="newCatIcon" placeholder="FontAwesome 图标 (例: fa-robot)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">
+                            <button onclick="addCategory()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">添加分类</button>
+                        </div>
+                    </div>
+
+                    <!-- Add Site Form -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
+                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-globe text-blue-500"></i> 添加新网址
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <select id="newSiteCategory" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></select>
+                            <input type="text" id="newSiteTitle" placeholder="网站标题 (例: Gemini)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">
+                            <input type="url" id="newSiteUrl" placeholder="网址 (例: https://gemini.google.com)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
+                            <input type="text" id="newSiteDesc" placeholder="简短描述 (选填)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
+                            <input type="text" id="newSiteIcon" placeholder="自定义图标 URL (留空则自动抓取或匹配)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
+                        </div>
+                        <button onclick="addSite()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors">保存并添加到导航</button>
+                    </div>
+
+                    <!-- Category and Site List Tree for Edit / Delete / Reorder -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">分类与卡片列表结构</h4>
+                        <div id="adminCategoryTree" class="space-y-4">
+                            <!-- Dynamic rendering of management list -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Bookmark Import & Backup -->
+                <div id="tabContent-import" class="hidden space-y-6">
+                    <!-- HTML Bookmark Import -->
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-file-import text-blue-500"></i> 导入浏览器书签 HTML 文件
+                        </h4>
+                        <p class="text-xs text-slate-500">支持 Chrome、Edge、Firefox 等导出的 <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">bookmarks.html</code> 文件，系统将自动解析文件夹为分类。</p>
+                        
+                        <div class="flex items-center space-x-4 pt-1">
+                            <label class="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+                                <input type="radio" name="importMode" value="append" checked class="text-blue-600">
+                                <span>追加合并到现存网址</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+                                <input type="radio" name="importMode" value="overwrite" class="text-blue-600">
+                                <span>覆盖并清空现有网址</span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <input type="file" id="bookmarkFileInput" accept=".html" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-800 dark:file:text-slate-300">
+                            <button onclick="importBookmarksHTML()" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg whitespace-nowrap hover:bg-blue-700">解析并导入</button>
+                        </div>
+                    </div>
+
+                    <!-- JSON Config Backup / Restore -->
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-database text-indigo-500"></i> JSON 配置文件备份与恢复
+                        </h4>
+                        <p class="text-xs text-slate-500">完整导出当前网址及分类结构为 JSON，方便在多设备间快速同步。</p>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="exportJSONConfig()" class="px-4 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white rounded-lg text-xs font-medium flex items-center gap-1.5">
+                                <i class="fa-solid fa-download"></i> 导出 JSON 配置文件
+                            </button>
+                            <label class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-upload"></i> 导入 JSON 配置文件
+                                <input type="file" id="jsonFileInput" accept=".json" onchange="importJSONConfig(event)" class="hidden">
+                            </label>
+                            <button onclick="resetToDefaultData()" class="px-4 py-2 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate-left"></i> 恢复为预设默认网址
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Security Settings -->
+                <div id="tabContent-security" class="hidden space-y-4">
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-key text-amber-500"></i> 修改后台管理密码
+                        </h4>
+                        <div class="max-w-md space-y-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">新密码</label>
+                                <input type="password" id="newAdminPassword" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">
+                            </div>
+                            <button onclick="changePassword()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg">更新密码</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default Config Data with rich presets
+        const DEFAULT_DATA = {
+            passwordHash: "admin123", // Default plain text for simple demo
+            searchEngines: [
+                { id: 'bing', name: '必应', icon: 'fa-brands fa-microsoft', url: 'https://cn.bing.com/search?q=' },
+                { id: 'google', name: 'Google', icon: 'fa-brands fa-google', url: 'https://www.google.com/search?q=' },
+                { id: 'baidu', name: '百度', icon: 'fa-solid fa-paw', url: 'https://www.baidu.com/s?wd=' },
+                { id: 'github', name: 'GitHub', icon: 'fa-brands fa-github', url: 'https://github.com/search?q=' }
+            ],
+            categories: [
+                {
+                    id: 'cat-ai',
+                    title: 'AI 工具',
+                    icon: 'fa-solid fa-brain',
+                    sites: [
+                        { id: 's-gemini', title: 'Gemini', url: 'https://gemini.google.com', desc: 'Google 顶尖多模态 AI 助手', icon: '' },
+                        { id: 's-chatgpt', title: 'ChatGPT', url: 'https://chatgpt.com', desc: 'OpenAI 强大对话与写作模型', icon: '' },
+                        { id: 's-claude', title: 'Claude', url: 'https://claude.ai', desc: 'Anthropic 高效长文本与逻辑 AI', icon: '' },
+                        { id: 's-perplexity', title: 'Perplexity', url: 'https://www.perplexity.ai', desc: '智能 AI 搜索引擎', icon: '' },
+                        { id: 's-deepseek', title: 'DeepSeek', url: 'https://chat.deepseek.com', desc: '深度求索高性能大语言模型', icon: '' },
+                        { id: 's-midjourney', title: 'Midjourney', url: 'https://www.midjourney.com', desc: '顶级 AI 图像与艺术创作生成', icon: '' },
+                        { id: 's-kimi', title: 'Kimi 智能助手', url: 'https://kimi.moonshot.cn', desc: '月之暗面长文本分析助手', icon: '' },
+                        { id: 's-zhipu', title: '智谱清言', url: 'https://chatglm.cn', desc: 'GLM大模型全能 AI 助手', icon: '' }
+                    ]
+                },
+                {
+                    id: 'cat-dev',
+                    title: '开发 & 设计',
+                    icon: 'fa-solid fa-code',
+                    sites: [
+                        { id: 's-github', title: 'GitHub', url: 'https://github.com', desc: '全球最大的开源代码托管平台', icon: '' },
+                        { id: 's-vercel', title: 'Vercel', url: 'https://vercel.com', desc: '现代前端部署与云服务', icon: '' },
+                        { id: 's-tailwind', title: 'Tailwind CSS', url: 'https://tailwindcss.com', desc: '实用优先的 CSS 框架', icon: '' },
+                        { id: 's-figma', title: 'Figma', url: 'https://www.figma.com', desc: '协同 UI/UX 界面设计工具', icon: '' },
+                        { id: 's-canva', title: 'Canva 可画', url: 'https://www.canva.cn', desc: '在线平面图形与海报设计', icon: '' },
+                        { id: 's-stackoverflow', title: 'Stack Overflow', url: 'https://stackoverflow.com', desc: '开发者问答与技术社区', icon: '' },
+                        { id: 's-dribbble', title: 'Dribbble', url: 'https://dribbble.com', desc: '全球设计师作品交流社区', icon: '' }
+                    ]
+                },
+                {
+                    id: 'cat-daily',
+                    title: '日常 & 常用',
+                    icon: 'fa-solid fa-house-laptop',
+                    sites: [
+                        { id: 's-bilibili', title: 'Bilibili', url: 'https://www.bilibili.com', desc: '哔哩哔哩弹幕视频网', icon: '' },
+                        { id: 's-youtube', title: 'YouTube', url: 'https://www.youtube.com', desc: '全球视频分享与播放平台', icon: '' },
+                        { id: 's-zhihu', title: '知乎', url: 'https://www.zhihu.com', desc: '深度问答与知识社区', icon: '' },
+                        { id: 's-xiaohongshu', title: '小红书', url: 'https://www.xiaohongshu.com', desc: '生活方式与笔记分享平台', icon: '' },
+                        { id: 's-v2ex', title: 'V2EX', url: 'https://www.v2ex.com', desc: '创意工作者讨论社区', icon: '' },
+                        { id: 's-notion', title: 'Notion', url: 'https://www.notion.so', desc: '一体化笔记与知识库协作', icon: '' }
+                    ]
+                }
+            ]
+        };
+
+        // State Management
+        let appData = JSON.parse(localStorage.getItem('nav_app_data')) || DEFAULT_DATA;
+        let activeEngineId = appData.searchEngines[0].id;
+        let isAuthenticated = false;
+
+        // Initialize Application
+        window.onload = function() {
+            initTheme();
+            renderSearchTabs();
+            renderCategoriesNav();
+            renderSites();
+        };
+
+        // Save Data to LocalStorage
+        function saveData() {
+            localStorage.setItem('nav_app_data', JSON.stringify(appData));
+        }
+
+        // --- STREAMING_CHUNK:Theme & UI Functions ---
+        function initTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark' || 
+                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // --- STREAMING_CHUNK:Search Box Logic ---
+        function renderSearchTabs() {
+            const container = document.getElementById('searchEngineTabs');
+            container.innerHTML = appData.searchEngines.map(engine => `
+                <button type="button" onclick="setSearchEngine('${engine.id}')" 
+                    class="px-3 py-1 rounded-lg flex items-center space-x-1.5 transition-all whitespace-nowrap ${engine.id === activeEngineId ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">
+                    <i class="${engine.icon}"></i>
+                    <span>${engine.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function setSearchEngine(id) {
+            activeEngineId = id;
+            renderSearchTabs();
+        }
+
+        function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const engine = appData.searchEngines.find(e => e.id === activeEngineId) || appData.searchEngines[0];
+            if (query.match(/^(http:\/\/|https:\/\/)/i) || (query.includes('.') && !query.includes(' '))) {
+                window.open(query.match(/^(http:\/\/|https:\/\/)/i) ? query : 'https://' + query, '_blank');
+            } else {
+                window.open(engine.url + encodeURIComponent(query), '_blank');
+            }
+        }
+
+        // --- STREAMING_CHUNK:Rendering Categories and Cards ---
+        function renderCategoriesNav() {
+            const container = document.getElementById('categoryNav');
+            container.innerHTML = appData.categories.map(cat => `
+                <a href="#${cat.id}" class="px-3.5 py-1.5 rounded-xl glass text-xs font-medium whitespace-nowrap hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center space-x-1.5">
+                    <i class="${cat.icon || 'fa-solid fa-folder'} text-blue-500"></i>
+                    <span>${cat.title}</span>
+                </a>
+            `).join('');
+        }
+
+        function getFaviconUrl(site) {
+            if (site.icon) return site.icon;
+            try {
+                const domain = new URL(site.url).hostname;
+                return `https://api.iowen.cn/api/favicon/${domain}.png`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function renderSites() {
+            const container = document.getElementById('siteContainer');
+            container.innerHTML = appData.categories.map(cat => `
+                <section id="${cat.id}" class="space-y-4 scroll-mt-20">
+                    <div class="flex items-center space-x-2 border-b border-slate-200/60 dark:border-slate-800 pb-2">
+                        <i class="${cat.icon || 'fa-solid fa-folder'} text-blue-600 dark:text-blue-400 text-lg"></i>
+                        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">${cat.title}</h2>
+                        <span class="text-xs text-slate-400 bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono">${cat.sites.length}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${cat.sites.map(site => `
+                            <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="glass-card p-4 rounded-xl flex items-start space-x-3 group">
+                                <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+                                    <img src="${getFaviconUrl(site)}" alt="${site.title}" class="w-6 h-6 object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-globe text-slate-400 text-lg\'></i>';">
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                                            ${site.title}
+                                        </h3>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
+                                        ${site.desc || '暂无详细描述'}
+                                    </p>
+                                </div>
+                            </a>
+                        `).join('')}
+                    </div>
+                </section>
+            `).join('');
+        }
+
+        // --- STREAMING_CHUNK:Auth & Admin Modal Handling ---
+        function openAdminModal() {
+            if (!isAuthenticated) {
+                document.getElementById('authModal').classList.remove('hidden');
+                document.getElementById('authPassword').focus();
+            } else {
+                document.getElementById('adminModal').classList.remove('hidden');
+                renderAdminTree();
+                updateCategorySelectOptions();
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authPassword').value = '';
+        }
+
+        function verifyPassword() {
+            const pwd = document.getElementById('authPassword').value;
+            if (pwd === (appData.passwordHash || "admin123")) {
+                isAuthenticated = true;
+                closeAuthModal();
+                openAdminModal();
+            } else {
+                document.getElementById('authError').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        function switchAdminTab(tabName) {
+            ['sites', 'import', 'security'].forEach(t => {
+                document.getElementById(`tabContent-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tabBtn-${t}`);
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'font-semibold');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            document.getElementById(`tabContent-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tabBtn-${tabName}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'font-semibold');
+        }
+
+        // --- STREAMING_CHUNK:Category & Site CRUD Logic ---
+        function updateCategorySelectOptions() {
+            const select = document.getElementById('newSiteCategory');
+            select.innerHTML = appData.categories.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+        }
+
+        function addCategory() {
+            const name = document.getElementById('newCatName').value.trim();
+            const icon = document.getElementById('newCatIcon').value.trim() || 'fa-solid fa-folder';
+            if (!name) return alert('请输入分类名称');
+
+            appData.categories.push({
+                id: 'cat-' + Date.now(),
+                title: name,
+                icon: icon,
+                sites: []
+            });
+            saveData();
+            refreshUI();
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatIcon').value = '';
+        }
+
+        function addSite() {
+            const catId = document.getElementById('newSiteCategory').value;
+            const title = document.getElementById('newSiteTitle').value.trim();
+            const url = document.getElementById('newSiteUrl').value.trim();
+            const desc = document.getElementById('newSiteDesc').value.trim();
+            const icon = document.getElementById('newSiteIcon').value.trim();
+
+            if (!title || !url) return alert('请填写网站标题和 URL');
+
+            const category = appData.categories.find(c => c.id === catId);
+            if (category) {
+                category.sites.push({
+                    id: 's-' + Date.now(),
+                    title, url, desc, icon
+                });
+                saveData();
+                refreshUI();
+                document.getElementById('newSiteTitle').value = '';
+                document.getElementById('newSiteUrl').value = '';
+                document.getElementById('newSiteDesc').value = '';
+                document.getElementById('newSiteIcon').value = '';
+            }
+        }
+
+        function moveCategory(index, direction) {
+            const target = index + direction;
+            if (target < 0 || target >= appData.categories.length) return;
+            const temp = appData.categories[index];
+            appData.categories[index] = appData.categories[target];
+            appData.categories[target] = temp;
+            saveData();
+            refreshUI();
+        }
+
+        function deleteCategory(catId) {
+            if (confirm('确定要删除该分类及其所有网址吗？')) {
+                appData.categories = appData.categories.filter(c => c.id !== catId);
+                saveData();
+                refreshUI();
+            }
+        }
+
+        function moveSite(catId, siteIndex, direction) {
+            const cat = appData.categories.find(c => c.id === catId);
+            if (!cat) return;
+            const target = siteIndex + direction;
+            if (target < 0 || target >= cat.sites.length) return;
+            const temp = cat.sites[siteIndex];
+            cat.sites[siteIndex] = cat.sites[target];
+            cat.sites[target] = temp;
+            saveData();
+            refreshUI();
+        }
+
+        function deleteSite(catId, siteId) {
+            const cat = appData.categories.find(c => c.id === catId);
+            if (cat) {
+                cat.sites = cat.sites.filter(s => s.id !== siteId);
+                saveData();
+                refreshUI();
+            }
+        }
+
+        function renderAdminTree() {
+            const container = document.getElementById('adminCategoryTree');
+            container.innerHTML = appData.categories.map((cat, cIdx) => `
+                <div class="border border-slate-200 dark:border-slate-700/70 rounded-xl p-4 space-y-3 bg-white/40 dark:bg-slate-900/40">
+                    <div class="flex items-center justify-between bg-slate-100/70 dark:bg-slate-800/70 p-2.5 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <i class="${cat.icon || 'fa-solid fa-folder'} text-blue-500"></i>
+                            <span class="font-bold text-sm">${cat.title}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button onclick="moveCategory(${cIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="上移"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button onclick="moveCategory(${cIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="下移"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button onclick="deleteCategory('${cat.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded text-xs" title="删除分类"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="pl-2 sm:pl-4 space-y-2">
+                        ${cat.sites.map((site, sIdx) => `
+                            <div class="flex items-center justify-between text-xs p-2 rounded bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                                <div class="truncate max-w-[60%] flex items-center gap-2">
+                                    <span class="font-medium truncate">${site.title}</span>
+                                    <span class="text-slate-400 truncate hidden sm:inline">(${site.url})</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="moveSite('${cat.id}', ${sIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-up"></i></button>
+                                    <button onclick="moveSite('${cat.id}', ${sIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-down"></i></button>
+                                    <button onclick="deleteSite('${cat.id}', '${site.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshUI() {
+            renderCategoriesNav();
+            renderSites();
+            renderAdminTree();
+            updateCategorySelectOptions();
+        }
+
+        // --- STREAMING_CHUNK:Bookmark Import & Data Export Logic ---
+        function importBookmarksHTML() {
+            const fileInput = document.getElementById('bookmarkFileInput');
+            if (!fileInput.files.length) return alert('请先选择 HTML 书签文件！');
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const htmlText = e.target.result;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                const newCategories = [];
+                const folders = doc.querySelectorAll('dl');
+
+                // Basic HTML parsing logic for bookmarks
+                const h3Tags = doc.querySelectorAll('h3');
+                if (h3Tags.length > 0) {
+                    h3Tags.forEach(h3 => {
+                        const folderName = h3.textContent.trim();
+                        const dl = h3.nextElementSibling;
+                        if (dl && dl.tagName.toLowerCase() === 'dl') {
+                            const links = dl.querySelectorAll('a');
+                            const sites = [];
+                            links.forEach(a => {
+                                if (a.href && a.textContent) {
+                                    sites.push({
+                                        id: 's-' + Math.random().toString(36).substr(2, 9),
+                                        title: a.textContent.trim(),
+                                        url: a.href,
+                                        desc: '',
+                                        icon: ''
+                                    });
+                                }
+                            });
+                            if (sites.length > 0) {
+                                newCategories.push({
+                                    id: 'cat-' + Math.random().toString(36).substr(2, 9),
+                                    title: folderName,
+                                    icon: 'fa-solid fa-folder',
+                                    sites
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    // Fallback flat links parsing
+                    const links = doc.querySelectorAll('a');
+                    const sites = [];
+                    links.forEach(a => {
+                        if (a.href && a.textContent) {
+                            sites.push({
+                                id: 's-' + Math.random().toString(36).substr(2, 9),
+                                title: a.textContent.trim(),
+                                url: a.href,
+                                desc: '',
+                                icon: ''
+                            });
+                        }
+                    });
+                    if (sites.length > 0) {
+                        newCategories.push({
+                            id: 'cat-imported',
+                            title: '导入的书签',
+                            icon: 'fa-solid fa-bookmark',
+                            sites
+                        });
+                    }
+                }
+
+                const mode = document.querySelector('input[name="importMode"]:checked').value;
+                if (mode === 'overwrite') {
+                    appData.categories = newCategories;
+                } else {
+                    appData.categories = appData.categories.concat(newCategories);
+                }
+
+                saveData();
+                refreshUI();
+                alert('书签解析导入成功！');
+            };
+
+            reader.readAsText(file);
+        }
+
+        function exportJSONConfig() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `nav_config_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSONConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.categories) {
+                        appData = parsed;
+                        saveData();
+                        refreshUI();
+                        alert('配置导入成功！');
+                    } else {
+                        alert('配置文件格式有误！');
+                    }
+                } catch (err) {
+                    alert('无法解析 JSON 文件！');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetToDefaultData() {
+            if (confirm('确定要恢复初始预设网址数据吗？当前数据将被覆盖。')) {
+                appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveData();
+                refreshUI();
+            }
+        }
+
+        function changePassword() {
+            const newPwd = document.getElementById('newAdminPassword').value.trim();
+            if (!newPwd) return alert('密码不能为空');
+            appData.passwordHash = newPwd;
+            saveData();
+            alert('密码修改成功，请牢记新密码！');
+            document.getElementById('newAdminPassword').value = '';
+        }
+    </script>
+</body>
+</html>
