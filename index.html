@@ -39,6 +39,8 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            /* 夜间光效外发光 */
+            box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.15);
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.6);
@@ -47,16 +49,53 @@
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .dark .glass-card {
-            background: rgba(30, 41, 59, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glass-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
         .dark .glass-card:hover {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            /* 暗色模式鼠标悬停高亮光效 */
+            box-shadow: 0 0 20px 2px rgba(59, 130, 246, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            border-color: rgba(96, 165, 250, 0.4);
         }
+
+        /* 暗黑模式夜间背景光效层 */
+        .glow-bg {
+            display: none;
+        }
+        .dark .glow-bg {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .dark .glow-blob-1 {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            filter: blur(60px);
+        }
+        .dark .glow-blob-2 {
+            position: absolute;
+            bottom: -10%;
+            right: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            filter: blur(60px);
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -81,7 +120,13 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+<body class="bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300 relative">
+
+    <!-- 暗黑模式专属动态微光背景 -->
+    <div class="glow-bg">
+        <div class="glow-blob-1"></div>
+        <div class="glow-blob-2"></div>
+    </div>
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-40 glass shadow-sm">
@@ -90,7 +135,8 @@
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
                     <i class="fa-solid fa-compass"></i>
                 </div>
-                <span class="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 bg-clip-text text-transparent">
+                <!-- 修正暗色模式下文字显示不清晰的问题：dark:text-blue-400 dark:drop-shadow -->
+                <span class="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
                     极简智航
                 </span>
             </div>
@@ -111,7 +157,7 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 z-10">
         
         <!-- Search Engine Box -->
         <section class="max-w-3xl mx-auto w-full pt-2 pb-2">
@@ -385,14 +431,27 @@
             localStorage.setItem('nav_app_data', JSON.stringify(appData));
         }
 
-        // --- STREAMING_CHUNK:Theme & Interface Methods ---
+        // --- Theme & Interface Methods ---
         function initTheme() {
-            const isDark = localStorage.getItem('theme') === 'dark' || 
-                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
+            const savedTheme = localStorage.getItem('theme');
+            
+            if (savedTheme) {
+                // 如果用户手动选择过主题，遵循用户设置
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             } else {
-                document.documentElement.classList.remove('dark');
+                // 白天/夜间自动切换逻辑（6:00 - 18:00 为白天，其它时间为夜间带光效主题）
+                const currentHour = new Date().getHours();
+                const isNight = currentHour < 6 || currentHour >= 18;
+                
+                if (isNight) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             }
         }
 
@@ -441,7 +500,7 @@
             `).join('');
         }
 
-        // --- STREAMING_CHUNK:Multi-source Favicon and Fallback Engine ---
+        // --- Multi-source Favicon and Fallback Engine ---
         function getDomain(urlStr) {
             try {
                 return new URL(urlStr).hostname;
@@ -526,7 +585,7 @@
             `).join('');
         }
 
-        // --- STREAMING_CHUNK:Admin Auth and CRUD logic ---
+        // --- Admin Auth and CRUD logic ---
         function openAdminModal() {
             if (!isAuthenticated) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -681,8 +740,8 @@
                                     <span class="text-slate-400 truncate hidden sm:inline">(${site.url})</span>
                                 </div>
                                 <div class="flex items-center space-x-1">
-                                    <button onclick="moveSite('${cat.id}', ${sIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-up"></i></button>
-                                    <button onclick="moveSite('${cat.id}', ${sIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-down"></i></button>
+                                    <button onclick="moveSite('${cat.id}',${sIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-up"></i></button>
+                                    <button onclick="moveSite('${cat.id}',${sIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-down"></i></button>
                                     <button onclick="deleteSite('${cat.id}', '${site.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
                             </div>
