@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>极简智航 - 个人万能导航站</title>
 
-    <!-- 设置网页 Favicon 图标（兼容浏览器标签页、书签栏、手机桌面快捷方式） -->
+    <!-- 1. 标准 Favicon (兼容标签页与书签栏) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%232563eb'/><path fill='%23ffffff' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm50.7-316.9l-118.6 47.4-47.4 118.6c-2.3 5.7 2.9 10.9 8.6 8.6l118.6-47.4 47.4-118.6c2.3-5.7-2.9-10.9-8.6-8.6zM256 288a32 32 0 1 1 0-64 32 32 0 1 1 0 64z'/></svg>">
+
+    <!-- 2. 桌面快捷方式与手机主屏幕高清图标 (Apple & Android & Windows 专用) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%232563eb'/><path fill='%23ffffff' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm50.7-316.9l-118.6 47.4-47.4 118.6c-2.3 5.7 2.9 10.9 8.6 8.6l118.6-47.4 47.4-118.6c2.3-5.7-2.9-10.9-8.6-8.6zM256 288a32 32 0 1 1 0-64 32 32 0 1 1 0 64z'/></svg>">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -766,3 +769,184 @@
             if (cat) {
                 cat.sites = cat.sites.filter(s => s.id !== siteId);
                 saveData();
+                refreshUI();
+            }
+        }
+
+        function renderAdminTree() {
+            const container = document.getElementById('adminCategoryTree');
+            container.innerHTML = appData.categories.map((cat, cIdx) => `
+                <div class="border border-slate-200 dark:border-slate-700/70 rounded-xl p-4 space-y-3 bg-white/40 dark:bg-slate-900/40">
+                    <div class="flex items-center justify-between bg-slate-100/70 dark:bg-slate-800/70 p-2.5 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <i class="${cat.icon || 'fa-solid fa-folder'} text-blue-500"></i>
+                            <span class="font-bold text-sm">${cat.title}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button onclick="moveCategory(${cIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="上移"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button onclick="moveCategory(${cIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="下移"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button onclick="deleteCategory('${cat.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded text-xs" title="删除分类"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="pl-2 sm:pl-4 space-y-2">
+                        ${cat.sites.map((site, sIdx) => `
+                            <div class="flex items-center justify-between text-xs p-2 rounded bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                                <div class="truncate max-w-[60%] flex items-center gap-2">
+                                    <span class="font-medium truncate">${site.title}</span>
+                                    <span class="text-slate-400 truncate hidden sm:inline">(${site.url})</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="moveSite('${cat.id}',${sIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-up"></i></button>
+                                    <button onclick="moveSite('${cat.id}',${sIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-down"></i></button>
+                                    <button onclick="deleteSite('${cat.id}', '${site.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshUI() {
+            renderCategoriesNav();
+            renderSites();
+            renderAdminTree();
+            updateCategorySelectOptions();
+        }
+
+        // Bookmark Import & Export Engine
+        function importBookmarksHTML() {
+            const fileInput = document.getElementById('bookmarkFileInput');
+            if (!fileInput.files.length) return alert('请先选择 HTML 书签文件！');
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const htmlText = e.target.result;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                const newCategories = [];
+                const h3Tags = doc.querySelectorAll('h3');
+
+                if (h3Tags.length > 0) {
+                    h3Tags.forEach(h3 => {
+                        const folderName = h3.textContent.trim();
+                        const dl = h3.nextElementSibling;
+                        if (dl && dl.tagName.toLowerCase() === 'dl') {
+                            const links = dl.querySelectorAll('a');
+                            const sites = [];
+                            links.forEach(a => {
+                                if (a.href && a.textContent) {
+                                    sites.push({
+                                        id: 's-' + Math.random().toString(36).substr(2, 9),
+                                        title: a.textContent.trim(),
+                                        url: a.href,
+                                        desc: '',
+                                        icon: ''
+                                    });
+                                }
+                            });
+                            if (sites.length > 0) {
+                                newCategories.push({
+                                    id: 'cat-' + Math.random().toString(36).substr(2, 9),
+                                    title: folderName,
+                                    icon: 'fa-solid fa-folder',
+                                    sites
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    const links = doc.querySelectorAll('a');
+                    const sites = [];
+                    links.forEach(a => {
+                        if (a.href && a.textContent) {
+                            sites.push({
+                                id: 's-' + Math.random().toString(36).substr(2, 9),
+                                title: a.textContent.trim(),
+                                url: a.href,
+                                desc: '',
+                                icon: ''
+                            });
+                        }
+                    });
+                    if (sites.length > 0) {
+                        newCategories.push({
+                            id: 'cat-imported',
+                            title: '导入的书签',
+                            icon: 'fa-solid fa-bookmark',
+                            sites
+                        });
+                    }
+                }
+
+                const mode = document.querySelector('input[name="importMode"]:checked').value;
+                if (mode === 'overwrite') {
+                    appData.categories = newCategories;
+                } else {
+                    appData.categories = appData.categories.concat(newCategories);
+                }
+
+                saveData();
+                refreshUI();
+                alert('书签解析成功！已导入到分类列表中。');
+            };
+
+            reader.readAsText(file);
+        }
+
+        function exportJSONConfig() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `nav_config_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSONConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.categories) {
+                        appData = parsed;
+                        saveData();
+                        refreshUI();
+                        alert('配置导入成功！');
+                    } else {
+                        alert('配置文件格式有误！');
+                    }
+                } catch (err) {
+                    alert('无法解析 JSON 文件！');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetToDefaultData() {
+            if (confirm('确定要恢复初始预设网址数据吗？当前数据将被覆盖。')) {
+                appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveData();
+                refreshUI();
+            }
+        }
+
+        function changePassword() {
+            const newPwd = document.getElementById('newAdminPassword').value.trim();
+            if (!newPwd) return alert('密码不能为空');
+            appData.passwordHash = newPwd;
+            saveData();
+            alert('密码修改成功，请牢记新密码！');
+            document.getElementById('newAdminPassword').value = '';
+        }
+    </script>
+</body>
+</html>
