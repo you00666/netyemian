@@ -135,13 +135,19 @@
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
                     <i class="fa-solid fa-compass"></i>
                 </div>
-                <!-- 修正暗色模式下文字显示不清晰的问题：dark:text-blue-400 dark:drop-shadow -->
+                <!-- 修正暗色模式下文字显示不清晰的问题 -->
                 <span class="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
                     极简智航
                 </span>
             </div>
 
             <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- 实时年月日与时钟显示（带秒，中大屏幕显示） -->
+                <div id="liveClock" class="hidden md:flex items-center text-xs lg:text-sm font-mono text-slate-600 dark:text-slate-300 bg-slate-200/40 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 select-none shadow-sm">
+                    <i class="fa-regular fa-clock mr-2 text-blue-500"></i>
+                    <span id="clockText">--</span>
+                </div>
+
                 <!-- Theme Toggle Button -->
                 <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors" title="切换深色/浅色模式">
                     <i class="fa-solid fa-moon text-lg dark:hidden"></i>
@@ -425,6 +431,7 @@
             renderSearchTabs();
             renderCategoriesNav();
             renderSites();
+            startLiveClock(); // 启动实时时钟
         };
 
         function saveData() {
@@ -458,6 +465,30 @@
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // --- 实时时钟逻辑 ---
+        function startLiveClock() {
+            function updateClock() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                const weekday = weekdays[now.getDay()];
+
+                const timeString = `${year}年${month}月${day}日 ${weekday} ${hours}:${minutes}:${seconds}`;
+                const clockEl = document.getElementById('clockText');
+                if (clockEl) {
+                    clockEl.textContent = timeString;
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
         }
 
         // Search Engine Functions
