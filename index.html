@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>极简智航 - 个人万能导航站</title>
+
+    <!-- 设置网页 Favicon 图标（兼容浏览器标签页、书签栏、手机桌面快捷方式） -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%232563eb'/><path fill='%23ffffff' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm50.7-316.9l-118.6 47.4-47.4 118.6c-2.3 5.7 2.9 10.9 8.6 8.6l118.6-47.4 47.4-118.6c2.3-5.7-2.9-10.9-8.6-8.6zM256 288a32 32 0 1 1 0-64 32 32 0 1 1 0 64z'/></svg>">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -60,6 +64,31 @@
             /* 暗色模式鼠标悬停高亮光效 */
             box-shadow: 0 0 20px 2px rgba(59, 130, 246, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
             border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        /* 高颜值图标容器样式 */
+        .icon-box {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            padding: 0.35rem;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .dark .icon-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+        .group:hover .icon-box {
+            transform: scale(1.06);
         }
 
         /* 暗黑模式夜间背景光效层 */
@@ -130,24 +159,26 @@
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-40 glass shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
+            
+            <!-- 左侧 Logo & 标题 -->
+            <div class="flex items-center space-x-3 z-10">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
                     <i class="fa-solid fa-compass"></i>
                 </div>
-                <!-- 修正暗色模式下文字显示不清晰的问题 -->
                 <span class="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
                     极简智航
                 </span>
             </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <!-- 实时年月日与时钟显示（带秒，中大屏幕显示） -->
-                <div id="liveClock" class="hidden md:flex items-center text-xs lg:text-sm font-mono text-slate-600 dark:text-slate-300 bg-slate-200/40 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 select-none shadow-sm">
-                    <i class="fa-regular fa-clock mr-2 text-blue-500"></i>
-                    <span id="clockText">--</span>
-                </div>
+            <!-- 正中间：实时年月日与时钟显示（带秒） -->
+            <div id="liveClock" class="absolute left-1/2 transform -translate-x-1/2 flex items-center text-xs sm:text-sm font-mono font-medium text-slate-700 dark:text-slate-200 bg-slate-200/50 dark:bg-slate-800/60 px-3.5 py-1.5 rounded-xl border border-slate-300/50 dark:border-slate-700/60 select-none shadow-sm whitespace-nowrap z-0">
+                <i class="fa-regular fa-clock mr-2 text-blue-500 animate-pulse"></i>
+                <span id="clockText">加载中...</span>
+            </div>
 
+            <!-- 右侧 操作按钮 -->
+            <div class="flex items-center space-x-2 sm:space-x-4 z-10">
                 <!-- Theme Toggle Button -->
                 <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors" title="切换深色/浅色模式">
                     <i class="fa-solid fa-moon text-lg dark:hidden"></i>
@@ -274,7 +305,7 @@
                             <input type="text" id="newSiteTitle" placeholder="网站标题 (例: Gemini)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">
                             <input type="url" id="newSiteUrl" placeholder="网址 (例: https://gemini.google.com)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
                             <input type="text" id="newSiteDesc" placeholder="简短描述 (选填)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
-                            <input type="text" id="newSiteIcon" placeholder="自定义图标 URL (留空则自动根据域名获取)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
+                            <input type="text" id="newSiteIcon" placeholder="自定义图标 URL (留空则自动提取高清 Logo)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm sm:col-span-2">
                         </div>
                         <button onclick="addSite()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors">保存并添加到导航</button>
                     </div>
@@ -369,7 +400,7 @@
                 {
                     id: 'cat-ai',
                     title: 'AI 工具',
-                    icon: 'fa-solid fa-brain',
+                    icon: 'fa-solid fa-brain-circuit',
                     sites: [
                         { id: 's-gemini', title: 'Gemini', url: 'https://gemini.google.com', desc: 'Google 顶尖多模态 AI 助手', icon: '' },
                         { id: 's-chatgpt', title: 'ChatGPT', url: 'https://chatgpt.com', desc: 'OpenAI 强大对话与写作模型', icon: '' },
@@ -384,7 +415,7 @@
                 {
                     id: 'cat-dev',
                     title: '开发 & 设计',
-                    icon: 'fa-solid fa-code',
+                    icon: 'fa-solid fa-code-merge',
                     sites: [
                         { id: 's-github', title: 'GitHub', url: 'https://github.com', desc: '全球最大的开源代码托管平台', icon: '' },
                         { id: 's-vercel', title: 'Vercel', url: 'https://vercel.com', desc: '现代前端部署与云服务', icon: '' },
@@ -398,7 +429,7 @@
                 {
                     id: 'cat-daily',
                     title: '日常 & 常用',
-                    icon: 'fa-solid fa-house-laptop',
+                    icon: 'fa-solid fa-compass-drafting',
                     sites: [
                         { id: 's-bilibili', title: 'Bilibili', url: 'https://www.bilibili.com', desc: '哔哩哔哩弹幕视频网', icon: '' },
                         { id: 's-youtube', title: 'YouTube', url: 'https://www.youtube.com', desc: '全球视频分享与播放平台', icon: '' },
@@ -416,14 +447,14 @@
         let activeEngineId = appData.searchEngines[0].id;
         let isAuthenticated = false;
 
-        // Colors for Initial Avatar Fallback
+        // 高质感渐变色盘
         const BG_COLORS = [
-            'from-blue-500 to-indigo-600',
-            'from-emerald-500 to-teal-600',
-            'from-violet-500 to-purple-600',
-            'from-amber-500 to-orange-600',
-            'from-rose-500 to-pink-600',
-            'from-cyan-500 to-blue-600'
+            'from-blue-600 to-indigo-600',
+            'from-emerald-500 to-teal-700',
+            'from-purple-600 to-pink-600',
+            'from-amber-500 to-rose-600',
+            'from-cyan-500 to-blue-700',
+            'from-indigo-500 to-purple-700'
         ];
 
         window.onload = function() {
@@ -431,7 +462,7 @@
             renderSearchTabs();
             renderCategoriesNav();
             renderSites();
-            startLiveClock(); // 启动实时时钟
+            startLiveClock();
         };
 
         function saveData() {
@@ -443,14 +474,12 @@
             const savedTheme = localStorage.getItem('theme');
             
             if (savedTheme) {
-                // 如果用户手动选择过主题，遵循用户设置
                 if (savedTheme === 'dark') {
                     document.documentElement.classList.add('dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                 }
             } else {
-                // 白天/夜间自动切换逻辑（6:00 - 18:00 为白天，其它时间为夜间带光效主题）
                 const currentHour = new Date().getHours();
                 const isNight = currentHour < 6 || currentHour >= 18;
                 
@@ -467,7 +496,7 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
 
-        // --- 实时时钟逻辑 ---
+        // --- 顶部正中间实时时钟逻辑 ---
         function startLiveClock() {
             function updateClock() {
                 const now = new Date();
@@ -531,7 +560,6 @@
             `).join('');
         }
 
-        // --- Multi-source Favicon and Fallback Engine ---
         function getDomain(urlStr) {
             try {
                 return new URL(urlStr).hostname;
@@ -544,8 +572,7 @@
             if (site.icon) return site.icon;
             const domain = getDomain(site.url);
             if (!domain) return '';
-            // Primary Source: Google Favicon Service (64px HD)
-            return `https://s2.googleusercontent.com/s2/favicons?domain=${domain}&sz=64`;
+            return `https://unavatar.io/${domain}?fallback=false`;
         }
 
         function handleIconError(imgElement, siteTitle, siteUrl) {
@@ -553,23 +580,19 @@
             const stage = parseInt(imgElement.getAttribute('data-fallback-stage') || '0');
 
             if (stage === 0 && domain) {
-                // Secondary Source: DuckDuckGo Icon API
                 imgElement.setAttribute('data-fallback-stage', '1');
-                imgElement.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+                imgElement.src = `https://s2.googleusercontent.com/s2/favicons?domain=${domain}&sz=128`;
             } else if (stage === 1 && domain) {
-                // Tertiary Source: Staticaly API
                 imgElement.setAttribute('data-fallback-stage', '2');
-                imgElement.src = `https://api.staticaly.com/favicon/${domain}`;
+                imgElement.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
             } else {
-                // Final Fallback: Styled Initial Letter / Character SVG Block
                 const parent = imgElement.parentElement;
                 const char = (siteTitle || 'W').trim().charAt(0).toUpperCase();
                 
-                // Pick deterministic color based on title length
                 const colorClass = BG_COLORS[siteTitle.length % BG_COLORS.length];
 
                 parent.innerHTML = `
-                    <div class="w-full h-full bg-gradient-to-br ${colorClass} text-white font-bold flex items-center justify-center text-base rounded-lg shadow-inner select-none">
+                    <div class="w-full h-full bg-gradient-to-br ${colorClass} text-white font-black flex items-center justify-center text-sm rounded-lg shadow-inner select-none border border-white/20">
                         ${char}
                     </div>
                 `;
@@ -589,11 +612,11 @@
                         ${cat.sites.map(site => {
                             const iconUrl = getPrimaryFaviconUrl(site);
                             return `
-                                <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="glass-card p-4 rounded-xl flex items-start space-x-3 group">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center shrink-0 overflow-hidden p-1 border border-slate-200/50 dark:border-slate-700/50">
+                                <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="glass-card p-4 rounded-xl flex items-center space-x-3.5 group">
+                                    <div class="icon-box">
                                         <img src="${iconUrl}" 
                                              alt="${site.title}" 
-                                             class="w-full h-full object-contain rounded" 
+                                             class="w-full h-full object-contain rounded-md" 
                                              data-fallback-stage="0"
                                              onerror="handleIconError(this, '${site.title.replace(/'/g, "\\'")}', '${site.url}')">
                                     </div>
@@ -743,184 +766,3 @@
             if (cat) {
                 cat.sites = cat.sites.filter(s => s.id !== siteId);
                 saveData();
-                refreshUI();
-            }
-        }
-
-        function renderAdminTree() {
-            const container = document.getElementById('adminCategoryTree');
-            container.innerHTML = appData.categories.map((cat, cIdx) => `
-                <div class="border border-slate-200 dark:border-slate-700/70 rounded-xl p-4 space-y-3 bg-white/40 dark:bg-slate-900/40">
-                    <div class="flex items-center justify-between bg-slate-100/70 dark:bg-slate-800/70 p-2.5 rounded-lg">
-                        <div class="flex items-center space-x-2">
-                            <i class="${cat.icon || 'fa-solid fa-folder'} text-blue-500"></i>
-                            <span class="font-bold text-sm">${cat.title}</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <button onclick="moveCategory(${cIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="上移"><i class="fa-solid fa-arrow-up"></i></button>
-                            <button onclick="moveCategory(${cIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-xs" title="下移"><i class="fa-solid fa-arrow-down"></i></button>
-                            <button onclick="deleteCategory('${cat.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded text-xs" title="删除分类"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="pl-2 sm:pl-4 space-y-2">
-                        ${cat.sites.map((site, sIdx) => `
-                            <div class="flex items-center justify-between text-xs p-2 rounded bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                                <div class="truncate max-w-[60%] flex items-center gap-2">
-                                    <span class="font-medium truncate">${site.title}</span>
-                                    <span class="text-slate-400 truncate hidden sm:inline">(${site.url})</span>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <button onclick="moveSite('${cat.id}',${sIdx}, -1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-up"></i></button>
-                                    <button onclick="moveSite('${cat.id}',${sIdx}, 1)" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><i class="fa-solid fa-arrow-down"></i></button>
-                                    <button onclick="deleteSite('${cat.id}', '${site.id}')" class="p-1 text-rose-500 hover:bg-rose-500/10 rounded"><i class="fa-solid fa-xmark"></i></button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function refreshUI() {
-            renderCategoriesNav();
-            renderSites();
-            renderAdminTree();
-            updateCategorySelectOptions();
-        }
-
-        // Bookmark Import & Export Engine
-        function importBookmarksHTML() {
-            const fileInput = document.getElementById('bookmarkFileInput');
-            if (!fileInput.files.length) return alert('请先选择 HTML 书签文件！');
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const htmlText = e.target.result;
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-
-                const newCategories = [];
-                const h3Tags = doc.querySelectorAll('h3');
-
-                if (h3Tags.length > 0) {
-                    h3Tags.forEach(h3 => {
-                        const folderName = h3.textContent.trim();
-                        const dl = h3.nextElementSibling;
-                        if (dl && dl.tagName.toLowerCase() === 'dl') {
-                            const links = dl.querySelectorAll('a');
-                            const sites = [];
-                            links.forEach(a => {
-                                if (a.href && a.textContent) {
-                                    sites.push({
-                                        id: 's-' + Math.random().toString(36).substr(2, 9),
-                                        title: a.textContent.trim(),
-                                        url: a.href,
-                                        desc: '',
-                                        icon: ''
-                                    });
-                                }
-                            });
-                            if (sites.length > 0) {
-                                newCategories.push({
-                                    id: 'cat-' + Math.random().toString(36).substr(2, 9),
-                                    title: folderName,
-                                    icon: 'fa-solid fa-folder',
-                                    sites
-                                });
-                            }
-                        }
-                    });
-                } else {
-                    const links = doc.querySelectorAll('a');
-                    const sites = [];
-                    links.forEach(a => {
-                        if (a.href && a.textContent) {
-                            sites.push({
-                                id: 's-' + Math.random().toString(36).substr(2, 9),
-                                title: a.textContent.trim(),
-                                url: a.href,
-                                desc: '',
-                                icon: ''
-                            });
-                        }
-                    });
-                    if (sites.length > 0) {
-                        newCategories.push({
-                            id: 'cat-imported',
-                            title: '导入的书签',
-                            icon: 'fa-solid fa-bookmark',
-                            sites
-                        });
-                    }
-                }
-
-                const mode = document.querySelector('input[name="importMode"]:checked').value;
-                if (mode === 'overwrite') {
-                    appData.categories = newCategories;
-                } else {
-                    appData.categories = appData.categories.concat(newCategories);
-                }
-
-                saveData();
-                refreshUI();
-                alert('书签解析成功！已导入到分类列表中。');
-            };
-
-            reader.readAsText(file);
-        }
-
-        function exportJSONConfig() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `nav_config_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importJSONConfig(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed && parsed.categories) {
-                        appData = parsed;
-                        saveData();
-                        refreshUI();
-                        alert('配置导入成功！');
-                    } else {
-                        alert('配置文件格式有误！');
-                    }
-                } catch (err) {
-                    alert('无法解析 JSON 文件！');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function resetToDefaultData() {
-            if (confirm('确定要恢复初始预设网址数据吗？当前数据将被覆盖。')) {
-                appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-                saveData();
-                refreshUI();
-            }
-        }
-
-        function changePassword() {
-            const newPwd = document.getElementById('newAdminPassword').value.trim();
-            if (!newPwd) return alert('密码不能为空');
-            appData.passwordHash = newPwd;
-            saveData();
-            alert('密码修改成功，请牢记新密码！');
-            document.getElementById('newAdminPassword').value = '';
-        }
-    </script>
-</body>
-</html>
